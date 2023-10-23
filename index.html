@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regex Practice</title>
+  <style>
+    :root {
+      --primary-bg: #f5f5f5;
+      --secondary-bg: #ffffff;
+      --primary-text: #333333;
+      --secondary-text: #555555;
+      --border-color: #dddddd;
+      --input-bg: #e9e9e9;
+      --correct-color: #28a745;
+      --incorrect-color: #dc3545;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--primary-bg);
+      color: var(--primary-text);
+      margin: 0;
+      padding: 1rem 5%;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 1em;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5em;
+      font-weight: 600;
+      color: var(--secondary-text);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.5em;
+      margin-bottom: 1em;
+      border: 1px solid var(--border-color);
+      background-color: var(--input-bg);
+      font-size: 1em;
+    }
+
+    #textContainer {
+      padding: 1em;
+      background-color: var(--secondary-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+      margin-bottom: 1em;
+    }
+
+    #text {
+      font-size: 1.2em;
+    }
+
+    button {
+      padding: 0.5em 1em;
+      margin: 0 0.5em;
+      border: none;
+      background-color: var(--secondary-bg);
+      border: 1px solid var(--border-color);
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: var(--input-bg);
+    }
+
+    .correct {
+      color: var(--correct-color);
+      font-weight: bold;
+      font-size: 5.2em;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+
+    }
+
+    .incorrect {
+      color: var(--incorrect-color);
+      font-weight: bold;
+    }
+
+    .color-1, .group-color-1 {
+      background-color: rgba(255, 100, 100, 0.6);
+    }
+
+    .color-2, .group-color-2 {
+      background-color: rgba(100, 255, 100, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      input[type="text"] {
+        width: 100%;
+      }
+    }
+  </style>
+
+</head>
+<body>
+
+<h1>Regex Practice</h1>
+
+<label for="regex">Enter your regex: </label>
+<input type="text" id="regex" placeholder="Enter regex here">
+<br>
+<label for="flags">Enter regex flags: </label>
+<input type="text" id="flags" placeholder="Enter flags here (g, i, etc.)" size="5" value="gm">
+<br>
+<p id="question"></p>
+<div id="textContainer" style="display: inline-block; text-align: left;">
+  <div id="text" style="white-space: pre-line;"></div>
+</div>
+<br>
+<button onclick="previousQuestion()">Previous</button>
+<button onclick="nextQuestion()">Next</button>
+<div id="specialMessage"></div>
+<div id="feedback"></div>
+
+<script>
+  let currentQuestion = 0;
+  const questions = [
+    {question: "Extract all words starting with the letter 'a'.", text: "apple banana apricot avocado almond", answer: /\ba\w+\b/g},
+    {question: "Extract all whole numbers from the text.", text: "123 456 789", answer: /\d+/g},
+    {question: "Extract all words ending with 'ed'.", text: "baked blinded coded decoded", answer: /\w+ed/g},
+    {question: "Match all email addresses.", text: "john.doe@example.com alice@example.net bob@example.org", answer: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g},
+    {question: "Extract all hexadecimal color codes.", text: "Colors: #ff5733, #33ccff and #abcdef", answer: /#[a-fA-F0-9]{6}/g},
+    {question: "Match all URLs.", text: "Sites: http://example.com, https://example.net, ftp://files.example.org", answer: /https?:\/\/[^\s]+|ftp:\/\/[^\s]+/g},
+    {question: "Match dates in the format YYYY-MM-DD.", text: "Dates: 2023-10-23, 1999-01-01, 2000-12-31", answer: /\d{4}-\d{2}-\d{2}/g},
+    {question: "Extract all capitalized words.", text: "Alice visited Paris last summer.", answer: /\b[A-Z][a-z]*\b/g},
+    {question: "Match all phone numbers in the format (XXX) XXX-XXXX.", text: "Call (123) 456-7890 or (987) 654-3210.", answer: /\(\d{3}\) \d{3}-\d{4}/g},
+    {question: "Extract words that have double letters (e.g., 'apple').", text: "apple balloon letter running", answer: /\b\w*(\w)\1\w*\b/g},
+    {question: "Match all IP addresses.", text: "Connected to 192.168.1.1 and 10.0.0.1", answer: /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g}
+  ];
+
+  function applyRegex() {
+    const regexPattern = document.getElementById('regex').value;
+    const flags = document.getElementById('flags').value;
+    let textToMatch = questions[currentQuestion].text;
+    const correctAnswer = questions[currentQuestion].answer;
+    document.getElementById('question').innerText = questions[currentQuestion].question;
+
+    try {
+      const regex = new RegExp(regexPattern, flags);
+      const userMatches = [...textToMatch.matchAll(regex)];
+      const correctMatches = [...textToMatch.matchAll(correctAnswer)];
+
+      // Clear the special message
+      document.getElementById('specialMessage').innerText = "";
+
+      if (JSON.stringify(userMatches.map(m => m[0])) === JSON.stringify(correctMatches.map(m => m[0]))) {
+        document.getElementById('feedback').innerHTML = '<span class="correct">Correct! ✔️</span>';
+
+        // Check if regex length is above 13 chars and show the special message
+        if (regexPattern.length > 11) {
+          document.getElementById('specialMessage').innerText = "If you didn’t know regex you would have thought this expression is like Chinese!";
+        }
+
+      } else {
+        document.getElementById('feedback').innerHTML = '<span class="incorrect">Incorrect ❌</span>';
+      }
+
+      let colorSwitch = true;
+      for (const match of userMatches.reverse()) {
+        let colorClass = "";
+        if (match[0].length === 1) {
+          colorClass = colorSwitch ? "color-1" : "color-2";
+          colorSwitch = !colorSwitch; // Toggle the switch for each character.
+        } else {
+          colorClass = colorSwitch ? "group-color-1" : "group-color-2";
+          colorSwitch = !colorSwitch;
+        }
+
+        textToMatch = textToMatch.substring(0, match.index) +
+          `<span class="${colorClass}">${match[0]}</span>` +
+          textToMatch.substring(match.index + match[0].length);
+      }
+
+      document.getElementById('text').innerHTML = textToMatch;
+    } catch (error) {
+      document.getElementById('text').innerHTML = `Error: ${error.message}`;
+    }
+  }
+
+
+  function nextQuestion() {
+    if (currentQuestion < questions.length - 1) {
+      currentQuestion++;
+      document.getElementById('regex').value = '';
+      applyRegex();
+    }
+  }
+
+  function previousQuestion() {
+    if (currentQuestion > 0) {
+      currentQuestion--;
+      document.getElementById('regex').value = '';
+      applyRegex();
+    }
+  }
+
+  document.getElementById('regex').addEventListener('input', applyRegex);
+  document.getElementById('flags').addEventListener('input', applyRegex);
+
+  // Initialize the first question
+  applyRegex();
+</script>
+
+</body>
+</html>
