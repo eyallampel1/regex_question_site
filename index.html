@@ -162,6 +162,23 @@
       direction: ltr;
     }
 
+    .flag-options {
+      text-align: left;
+      direction: ltr;
+      display: flex; /* Aligns the checkboxes in a row */
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center; /* Aligns the checkbox and label vertically */
+      margin-right: 15px; /* Adds space between each checkbox group */
+    }
+
+    .checkbox-group label {
+      margin-left: 5px; /* Space between checkbox and label */
+    }
+
+
     .specialText {
       font-size: 1.5em;
       color: #FF5733;
@@ -182,9 +199,22 @@
   <input type="text" id="regex" placeholder="הכנס ביטוי כאן">
 </div>
 <div class="ltr-input">
-  <label for="flags">הכנס דגלים לביטוי ה- regex: </label>
-  <input type="text" id="flags" placeholder="הכנס דגלים כאן (g, i, וכו')" size="5" value="gm">
-</div>
+  <label>הכנס דגלים לביטוי ה- regex: </label>
+  <div class="flag-options">
+    <div class="checkbox-group">
+      <input type="checkbox" id="flag-g" checked>
+      <label for="flag-g">g (Global)</label>
+    </div>
+    <div class="checkbox-group">
+      <input type="checkbox" id="flag-i">
+      <label for="flag-i">i (Case Insensitive)</label>
+    </div>
+    <div class="checkbox-group">
+      <input type="checkbox" id="flag-m" checked>
+      <label for="flag-m">m (Multiline)</label>
+    </div>
+
+  </div>
 
 
 <br>
@@ -262,7 +292,13 @@
 
   function applyRegex() {
     const regexInput = document.getElementById('regex').value;
-    const flags = document.getElementById('flags').value;
+    let flags = '';
+
+    // Construct flags string based on checked states
+    if (document.getElementById('flag-g').checked) flags += 'g';
+    if (document.getElementById('flag-i').checked) flags += 'i';
+    if (document.getElementById('flag-m').checked) flags += 'm';
+
     let textToMatch = mode === "questions" ? questions[currentQuestion].text : document.getElementById('customText').value;
     let regex;
 
@@ -273,7 +309,14 @@
       return;
     }
 
-    let matches = [...textToMatch.matchAll(regex)];
+    // Use matchAll or match based on the presence of global flag
+    let matches;
+    if (flags.includes('g')) {
+      matches = [...textToMatch.matchAll(regex)];
+    } else {
+      const match = textToMatch.match(regex);
+      matches = match ? [match] : [];
+    }
     let highlightedText = '';
     let lastIndex = 0;
     let colorSwitch = true; // To alternate colors
@@ -338,8 +381,11 @@
 
 
   document.getElementById('regex').addEventListener('input', applyRegex);
-  document.getElementById('flags').addEventListener('input', applyRegex);
   document.getElementById('customText').addEventListener('input', applyRegex);
+  document.getElementById('flag-g').addEventListener('change', applyRegex);
+  document.getElementById('flag-i').addEventListener('change', applyRegex);
+  document.getElementById('flag-m').addEventListener('change', applyRegex);
+
   // Initialize the UI based on the default mode
   document.getElementById('question').innerText = questions[currentQuestion].question;
   applyRegex(); // Apply regex for the initial load
