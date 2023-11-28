@@ -171,13 +171,30 @@
     .checkbox-group {
       display: flex;
       align-items: center; /* Aligns the checkbox and label vertically */
-      margin-right: 15px; /* Adds space between each checkbox group */
+      margin-right: 100px; /* Adds space between each checkbox group */
+      transform: scale(1.5); /* Scale up the checkbox */
+
     }
 
     .checkbox-group label {
       margin-left: 5px; /* Space between checkbox and label */
     }
 
+    .checkbox-netlist-group {
+      display: flex;
+      align-items: center;
+      flex-direction: row-reverse; /* Reverse the row direction */
+      margin-bottom: 10px;
+    }
+
+    .checkbox-netlist-group label {
+      margin-right: 5px; /* Space after label */
+    }
+
+    #netlistResults {
+      text-align: left;
+      direction: ltr;
+    }
 
     .specialText {
       font-size: 1.5em;
@@ -219,7 +236,7 @@
 
 <br>
 <p id="question"></p>
-<div id="textContainer" style="display: inline-block; text-align: right;">
+<div id="textContainer" style="display: inline-block; text-align: left;">
   <div id="text" style="white-space: pre-line;"></div>
 </div>
 <br>
@@ -244,6 +261,23 @@
 <div>
   <button id="toggleMode" onclick="toggleMode()">Switch to Free Text Mode</button>
 </div>
+<br>
+  <br>
+  <div class="checkbox-netlist-group">
+    <input type="checkbox" checked id="toggleNetlistCheckbox" onchange="toggleNetlistSection()">
+    <label for="toggleNetlistCheckbox">Show/Hide Netlist Checker</label>
+  </div>
+
+
+  <div id="netlistSection">
+    <div class="specialText">------------------------------------------------------------------</div>
+    <div class="specialText">------------------------------------------------------------------</div>
+    <h2>Upload Netlist File</h2>
+    <input type="file" id="fileInput">
+    <button onclick="processNetlist()">Check Netlist</button>
+    <div id="netlistResults"></div>
+  </div>
+
 
 <script>
   let currentQuestion = 0;
@@ -269,7 +303,7 @@
     document.getElementById('regex').value = '';
     if (mode === "questions") {
       mode = "freeText";
-      document.getElementById('toggleMode').innerText = 'Switch to Questions Mode';
+      document.getElementById('toggleMode').innerText = 'העבר אתר למצב שאלות';
       document.getElementById('question').style.display = 'none';
       document.getElementById('textContainer').style.display = 'none';
       document.getElementById('customText').style.display = 'block';
@@ -277,7 +311,7 @@
       document.getElementById('feedback').innerHTML = ''; // Clear feedback
     } else {
       mode = "questions";
-      document.getElementById('toggleMode').innerText = 'Switch to Free Text Mode';
+      document.getElementById('toggleMode').innerText = 'העבר אתר למצב טקסט חופשי';
       document.getElementById('question').style.display = 'block';
       document.getElementById('textContainer').style.display = 'block';
       document.getElementById('customText').style.display = 'none';
@@ -288,6 +322,46 @@
   }
 
 
+  function processNetlist() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    if (!file) {
+      alert('Please select a file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const content = e.target.result;
+      checkNetlistErrors(content);
+    };
+    reader.readAsText(file);
+  }
+
+  function checkNetlistErrors(content) {
+    const lines = content.split('\n');
+    let isErrorFound = false;
+    let output = '';
+
+    lines.forEach(line => {
+      if (line.startsWith('  Explicit Pin:')) {
+        const regex = /'(\d+)' '(\w+)' '([^']+)'/;
+        const match = line.match(regex);
+
+        if (match && (match[2].toLowerCase() === 'sda' || match[2].toLowerCase() === 'scl') &&
+          !match[3].toLowerCase().includes(match[2].toLowerCase())) {
+          output += `<p style="color: red;">Error found in line: ${line}</p>`;
+          isErrorFound = true;
+        }
+      }
+    });
+
+    if (!isErrorFound) {
+      output = '<p style="color: green;">Netlist check passed, no errors found.</p>';
+    }
+
+    document.getElementById('netlistResults').innerHTML = output;
+  }
 
 
   function applyRegex() {
@@ -350,10 +424,6 @@
     }
   }
 
-
-
-
-
   // Initialize the first question or free text
   toggleMode();
 
@@ -390,6 +460,13 @@
   document.getElementById('question').innerText = questions[currentQuestion].question;
   applyRegex(); // Apply regex for the initial load
 
+  function toggleNetlistSection() {
+    var netlistSection = document.getElementById('netlistSection');
+    var checkbox = document.getElementById('toggleNetlistCheckbox');
+    netlistSection.style.display = checkbox.checked ? 'none' : 'block';
+  }
+  // Call the function to set the initial state
+  toggleNetlistSection();
 </script>
 
 </body>
