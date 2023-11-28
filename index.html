@@ -70,6 +70,11 @@
       text-align: left; /* Align text to the left */
     }
 
+    /* Align textarea and freeTextContainer text to the left */
+    .ltr-textarea textarea, #freeTextContainer {
+      text-align: left;
+      direction: ltr;
+    }
 
 
     #text {
@@ -121,10 +126,23 @@
       }
     }
 
-    body, h1, label, button, p, div {
+    body, h1, label, button, p {
       text-align: right;
       direction: rtl;
     }
+
+    /* Increase specificity for freeTextContainer */
+    body #freeTextContainer {
+      text-align: left;
+      direction: ltr;
+    }
+
+    /* Similarly for customText (textarea) */
+    body .ltr-textarea #customText {
+      text-align: left;
+      direction: ltr;
+    }
+
 
     input[type="text"] {
       direction: rtl;
@@ -161,7 +179,7 @@
 
 <div class="ltr-input">
   <label for="regex">הכנס את ביטוי ה-regex שלך: </label>
-  <input type="text" id="regex" placeholder="הכנס ביטוי כאן" value="hello">
+  <input type="text" id="regex" placeholder="הכנס ביטוי כאן">
 </div>
 <div class="ltr-input">
   <label for="flags">הכנס דגלים לביטוי ה- regex: </label>
@@ -176,10 +194,14 @@
 </div>
 <br>
 
-<textarea id="customText" placeholder="Paste your text here" rows="5" style="width: 100%; display: none;"></textarea>
+<div class="ltr-textarea">
+  <textarea id="customText" placeholder="הדבק את הטקסט שלך כאן" rows="5" style="width: 100%; display: none;"></textarea>
+</div>
 <br>
+<div class="ltr-textarea">
 <div id="freeTextContainer" style="padding: 1em; background-color: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 5px; margin-bottom: 1em; display: none;">
   <div id="freeText" style="white-space: pre-line;"></div>
+</div>
 </div>
 <br>
 
